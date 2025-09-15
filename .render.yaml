@@ -1,0 +1,78 @@
+services:
+  - type: web
+    name: ai-secretary
+    env: php
+    plan: starter
+    region: oregon
+    buildCommand: |
+      composer install --no-dev --optimize-autoloader --no-interaction
+      php artisan key:generate --force
+      php artisan migrate --force
+      php artisan config:cache
+      php artisan route:cache
+      php artisan view:cache
+      php artisan storage:link
+    startCommand: php artisan serve --host=0.0.0.0 --port=$PORT
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: LOG_LEVEL
+        value: error
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: ai-secretary-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: ai-secretary-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: ai-secretary-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: ai-secretary-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: ai-secretary-db
+          property: password
+      - key: APP_URL
+        value: https://ai-secretary.onrender.com
+      - key: GEMINI_API_KEY
+        value: AIzaSyCzJd-xLQ-9auGxihe23JHrz0IOJ7W_3BY
+      - key: GEMINI_MODEL
+        value: gemini-1.5-flash
+      - key: GOOGLE_CLIENT_ID
+        value: 4013995185-j1jjkia8v93a7dvnr4ugnc9amnhh5qag.apps.googleusercontent.com
+      - key: GOOGLE_CLIENT_SECRET
+        value: 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
+      - key: GOOGLE_REDIRECT_URI
+        value: https://ai-secretary.onrender.com/auth/google/callback
+      - key: MAIL_MAILER
+        value: smtp
+      - key: MAIL_HOST
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: 465
+      - key: MAIL_USERNAME
+        value: dailygoldtrades25@gmail.com
+      - key: MAIL_PASSWORD
+        value: your_16_character_app_password_here
+      - key: MAIL_ENCRYPTION
+        value: ssl
+      - key: MAIL_FROM_ADDRESS
+        value: dailygoldtrades25@gmail.com
+      - key: MAIL_FROM_NAME
+        value: AI Secretary
+
+databases:
+  - name: ai-secretary-db
+    plan: starter
