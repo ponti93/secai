@@ -44,9 +44,9 @@ RUN mkdir -p /var/www/html/bootstrap/cache \
 # Run post-install scripts now that directories are ready
 RUN composer run-script post-autoload-dump
 
-# Configure Apache
+# Configure Apache for Render
 RUN a2enmod rewrite
-RUN echo '<VirtualHost *:80>\n\
+RUN echo '<VirtualHost *:${PORT}>\n\
     ServerAdmin webmaster@localhost\n\
     DocumentRoot /var/www/html/public\n\
 \n\
@@ -61,6 +61,9 @@ RUN echo '<VirtualHost *:80>\n\
 
 # Create startup script
 RUN echo '#!/bin/bash\n\
+# Set default PORT if not provided\n\
+export PORT=${PORT:-10000}\n\
+\n\
 # Wait for database to be ready\n\
 echo "Waiting for database..."\n\
 while ! nc -z $DB_HOST $DB_PORT; do\n\
@@ -86,13 +89,17 @@ php artisan config:cache\n\
 php artisan route:cache\n\
 php artisan view:cache\n\
 \n\
+# Configure Apache to listen on PORT\n\
+sed -i "s/\${PORT}/$PORT/g" /etc/apache2/sites-available/000-default.conf\n\
+echo "Listen $PORT" >> /etc/apache2/ports.conf\n\
+\n\
 # Start Apache\n\
 apache2-foreground' > /usr/local/bin/start.sh
 
 RUN chmod +x /usr/local/bin/start.sh
 
-# Expose port
-EXPOSE 80
+# Expose port (Render will use PORT environment variable)
+EXPOSE $PORT
 
 # Start the application
 CMD ["/usr/local/bin/start.sh"]
