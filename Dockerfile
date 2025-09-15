@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     libpq-dev \
-    netcat \
+    netcat-openbsd \
     && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd zip
 
 # Install Composer
