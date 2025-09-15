@@ -1,18 +1,10 @@
 services:
   - type: web
     name: ai-secretary
-    env: php
+    env: docker
     plan: starter
     region: oregon
-    buildCommand: |
-      composer install --no-dev --optimize-autoloader --no-interaction
-      php artisan key:generate --force
-      php artisan migrate --force
-      php artisan config:cache
-      php artisan route:cache
-      php artisan view:cache
-      php artisan storage:link
-    startCommand: php artisan serve --host=0.0.0.0 --port=$PORT
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /
     autoDeploy: true
     envVars:
