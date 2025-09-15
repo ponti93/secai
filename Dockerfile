@@ -49,6 +49,62 @@ COPY composer.json composer.lock ./
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
+# Configure NGINX
+RUN echo 'server {\n\
+    listen 80;\n\
+    server_name localhost;\n\
+    root /var/www/html/public;\n\
+    index index.php index.html;\n\
+\n\
+    # Security headers\n\
+    add_header X-Frame-Options "SAMEORIGIN" always;\n\
+    add_header X-XSS-Protection "1; mode=block" always;\n\
+    add_header X-Content-Type-Options "nosniff" always;\n\
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;\n\
+    add_header Content-Security-Policy "default-src '\''self'\'' http: https: data: blob: '\''unsafe-inline'\''" always;\n\
+\n\
+    # Gzip compression\n\
+    gzip on;\n\
+    gzip_vary on;\n\
+    gzip_min_length 1024;\n\
+    gzip_proxied expired no-cache no-store private must-revalidate auth;\n\
+    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss;\n\
+\n\
+    # Handle Laravel routes\n\
+    location / {\n\
+        try_files $uri $uri/ /index.php?$query_string;\n\
+    }\n\
+\n\
+    # Handle PHP files\n\
+    location ~ \.php$ {\n\
+        fastcgi_pass unix:/var/run/php-fpm.sock;\n\
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;\n\
+        include fastcgi_params;\n\
+        fastcgi_hide_header X-Powered-By;\n\
+    }\n\
+\n\
+    # Deny access to hidden files\n\
+    location ~ /\. {\n\
+        deny all;\n\
+    }\n\
+\n\
+    # Cache static assets\n\
+    location ~* \.(css|js|png|jpg|jpeg|gif|ico|svg)$ {\n\
+        expires 1y;\n\
+        add_header Cache-Control "public, immutable";\n\
+    }\n\
+\n\
+    # Security: deny access to sensitive files\n\
+    location ~ /\.(htaccess|htpasswd|env) {\n\
+        deny all;\n\
+    }\n\
+\n\
+    # Deny access to storage and bootstrap cache\n\
+    location ~ ^/(storage|bootstrap/cache) {\n\
+        deny all;\n\
+    }\n\
+}' > /etc/nginx/conf.d/default.conf
+
 # Copy application code
 COPY . .
 
@@ -56,9 +112,6 @@ COPY . .
 RUN chown -R nginx:nginx /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
-
-# Configure NGINX
-COPY .docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
 # Configure PHP-FPM
 RUN echo '[www]\n\
