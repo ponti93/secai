@@ -1,0 +1,55 @@
+# cPanel Deployment Instructions
+
+## Files to Upload to cPanel
+
+### 1. Upload to public_html/
+- public_html/index.php
+- public_html/.htaccess
+- public_html/assets/ (entire folder)
+- public_html/css/ (entire folder)
+- public_html/js/ (entire folder)
+- public_html/images/ (entire folder)
+- public_html/favicon.ico
+
+### 2. Upload to root directory (outside public_html)
+- app/ (entire folder)
+- bootstrap/ (entire folder)
+- config/ (entire folder)
+- database/ (entire folder)
+- resources/ (entire folder)
+- routes/ (entire folder)
+- storage/ (entire folder)
+- vendor/ (entire folder)
+- .env.production (rename to .env)
+- artisan
+- composer.json
+- composer.lock
+
+### 3. Set Permissions
+- storage/ → 755
+- bootstrap/cache/ → 755
+- public_html/ → 755
+
+### 4. Update .env
+- Change APP_URL to your domain
+- Update database credentials for Supabase
+- Set APP_ENV=production
+- Set APP_DEBUG=false
+
+### 5. Run Database Migrations
+- Use cPanel's Terminal or PHPMyAdmin
+- Run: php artisan migrate --force
+
+### 6. Generate Application Key
+- Run: php artisan key:generate
+
+### 7. Clear Caches
+- Run: php artisan config:clear
+- Run: php artisan cache:clear
+- Run: php artisan view:clear
+
+## Important Notes
+- Make sure PHP version is 8.1 or higher
+- Enable PostgreSQL extension in cPanel
+- Set memory_limit to at least 256M
+- Set max_execution_time to at least 300 seconds

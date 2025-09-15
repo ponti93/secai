@@ -1,0 +1,50 @@
+# cPanel Deployment with MySQL
+
+## Database Setup in cPanel
+
+### 1. Create MySQL Database
+1. Login to cPanel
+2. Go to "MySQL Databases"
+3. Create a new database (e.g., "ai_secretary")
+4. Create a new user with a strong password
+5. Add the user to the database with ALL PRIVILEGES
+
+### 2. Update .env File
+```env
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_PORT=3306
+DB_DATABASE=your_database_name
+DB_USERNAME=your_database_user
+DB_PASSWORD=your_database_password
+```
+
+### 3. Upload Files to cPanel
+- Upload all files to your domain's root directory
+- Make sure public files go to public_html/
+- Set proper permissions (755 for folders, 644 for files)
+
+### 4. Run Migrations
+Use cPanel's Terminal or create a PHP script to run:
+```php
+<?php
+require_once "vendor/autoload.php";
+$app = require_once "bootstrap/app.php";
+$app->make("Illuminate\Contracts\Console\Kernel")->bootstrap();
+
+// Run migrations
+Artisan::call("migrate", ["--force" => true]);
+echo "Migrations completed!";
+?>
+```
+
+### 5. Set Permissions
+- storage/ → 755
+- bootstrap/cache/ → 755
+- public_html/ → 755
+
+## Important Notes
+- MySQL doesn't support some PostgreSQL features like JSON columns
+- We've converted JSON columns to TEXT for compatibility
+- All AI features will work the same way
+- Make sure PHP version is 8.1+ and MySQL extension is enabled
